@@ -1,0 +1,31 @@
+# $(sql_password) is a seceret defined in pipeline variables.
+trigger: none
+
+pool:
+ name: my_mac
+
+steps:
+
+- task:  PowerShell@2
+  displayName: Docker Pull & Run  
+  inputs:
+    targetType: 'inline'
+    script: 'docker pull $(webapi) && docker run -d -p 8080:80 $(webapi) --name webapi && docker pull mariadb && docker run -e MYSQL_ROOT_PASSWORD=$(sql_password) --name mydbcontainer -d mariadb'
+
+- task: PowerShell@2
+  displayName: Web Request
+  inputs:
+    filePath: '$(Build.SourcesDirectory)/script_1.ps1'
+
+
+- task: PowerShell@2
+  displayName: insert to SQL
+  env:
+    password: $(sql_password)
+  inputs:
+    filePath: '$(Build.SourcesDirectory)/script_2.ps1'
+
+
+
+
+
